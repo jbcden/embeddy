@@ -8,6 +8,7 @@ defmodule Embeddy.Rules.Rule do
     field :name, :string
     field :description, :string
     embeds_one :conditions, Condition, on_replace: :delete
+    embeds_many :conditions_multi, Condition, on_replace: :delete
 
     timestamps()
   end
@@ -16,5 +17,6 @@ defmodule Embeddy.Rules.Rule do
     rule
     |> cast(attrs, [:name, :description])
     |> cast_embed(:conditions)
+    |> cast_embed(:conditions_multi)
   end
 end
