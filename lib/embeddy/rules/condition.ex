@@ -10,7 +10,7 @@ defmodule Embeddy.Rules.Condition do
   embedded_schema do
     field :title
     field :bar
-    embeds_many :conditions, Condition
+    embeds_many :conditions, Condition, on_replace: :delete
   end
 
   def changeset(%Condition{} = condition, attrs = %{}) do
