@@ -1,0 +1,141 @@
+<!-- livebook:{"persist_outputs":true} -->
+
+# Untitled notebook
+
+## Section
+
+```elixir
+import Embeddy.Rules
+
+{:ok, rule_1} =
+  create_rule(%{
+    name: "my cool rule",
+    description: "Let's delete some conditions",
+    conditions: [
+      %{title: "cond 1", bar: "> 123"},
+      %{title: "cond 2", bar: "< 99"}
+    ]
+  })
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+[debug] QUERY OK db=6.4ms idle=1388.6ms
+begin []
+[debug] QUERY OK db=0.7ms
+INSERT INTO "rules" ("conditions","description","name","inserted_at","updated_at") VALUES ($1,$2,$3,$4,$5) RETURNING "id" [[%{bar: "> 123", conditions: [], id: "3c70d5a9-12ac-4c0f-9da1-8d163484d168", title: "cond 1"}, %{bar: "< 99", conditions: [], id: "4be68c30-5c4e-4067-ad73-303880290a4d", title: "cond 2"}], "Let's delete some conditions", "my cool rule", ~N[2022-03-24 04:42:41], ~N[2022-03-24 04:42:41]]
+
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+{:ok,
+ %Embeddy.Rules.Rule{
+   __meta__: #Ecto.Schema.Metadata<:loaded, "rules">,
+   conditions: [
+     %Embeddy.Rules.Condition{
+       bar: "> 123",
+       conditions: [],
+       id: "3c70d5a9-12ac-4c0f-9da1-8d163484d168",
+       title: "cond 1"
+     },
+     %Embeddy.Rules.Condition{
+       bar: "< 99",
+       conditions: [],
+       id: "4be68c30-5c4e-4067-ad73-303880290a4d",
+       title: "cond 2"
+     }
+   ],
+   description: "Let's delete some conditions",
+   id: 4,
+   inserted_at: ~N[2022-03-24 04:42:41],
+   name: "my cool rule",
+   updated_at: ~N[2022-03-24 04:42:41]
+ }}
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+[debug] QUERY OK db=6.0ms
+commit []
+
+```
+
+```elixir
+defmodule MagicalDeleteButton do
+  import Ecto.Changeset
+  alias Embeddy.Rules.{Rule, Condition}
+
+  def find_condition_by_id(%Rule{} = rule, condition_id) do
+    get_in(rule, [Access.key(:conditions), Access.filter(fn i -> i.id == condition_id end)])
+  end
+
+  def delete_condition_by_id(%Rule{} = rule, condition_id) do
+    {_original_condition, new_rule} =
+      pop_in(rule, [Access.key(:conditions), Access.filter(fn i -> i.id == condition_id end)])
+
+    Rule.changeset(rule)
+    |> put_embed(:conditions, new_rule.conditions)
+    |> Embeddy.Repo.update()
+  end
+
+  def translate_path()
+end
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+warning: unused alias Condition
+  notebook.livemd#cell:3
+
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+{:module, MagicalDeleteButton, <<70, 79, 82, 49, 0, 0, 11, ...>>, {:delete_condition_by_id, 2}}
+```
+
+```elixir
+rule_1 =
+  rule_1
+  |> MagicalDeleteButton.delete_condition_by_id("4be68c30-5c4e-4067-ad73-303880290a4d")
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+[debug] QUERY OK db=0.2ms idle=1375.7ms
+begin []
+[debug] QUERY OK db=0.8ms
+UPDATE "rules" SET "conditions" = $1, "updated_at" = $2 WHERE "id" = $3 [[%{bar: "> 123", conditions: [], id: "3c70d5a9-12ac-4c0f-9da1-8d163484d168", title: "cond 1"}], ~N[2022-03-24 04:56:59], 4]
+[debug] QUERY OK db=0.6ms
+commit []
+
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+{:ok,
+ %Embeddy.Rules.Rule{
+   __meta__: #Ecto.Schema.Metadata<:loaded, "rules">,
+   conditions: [
+     %Embeddy.Rules.Condition{
+       bar: "> 123",
+       conditions: [],
+       id: "3c70d5a9-12ac-4c0f-9da1-8d163484d168",
+       title: "cond 1"
+     }
+   ],
+   description: "Let's delete some conditions",
+   id: 4,
+   inserted_at: ~N[2022-03-24 04:42:41],
+   name: "my cool rule",
+   updated_at: ~N[2022-03-24 04:56:59]
+ }}
+```
